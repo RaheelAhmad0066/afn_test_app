@@ -463,5 +463,48 @@ class QuizController extends GetxController {
       return '';
     }
   }
+
+  // Check if topic has questions (through its tests)
+  Future<bool> topicHasQuestions(String topicId) async {
+    if (!isFirebaseAvailable) return false;
+    
+    try {
+      // First get all tests for this topic
+      final testsSnapshot = await databaseRef
+          .child('tests')
+          .orderByChild('topicId')
+          .equalTo(topicId)
+          .get();
+
+      if (!testsSnapshot.exists) return false;
+
+      final testsValue = testsSnapshot.value;
+      if (testsValue is! Map<dynamic, dynamic>) return false;
+
+      // Check if any test has questions
+      for (var testEntry in testsValue.entries) {
+        final testId = testEntry.key.toString();
+        
+        // Check if this test has questions
+        final questionsSnapshot = await databaseRef
+            .child('questions')
+            .orderByChild('testId')
+            .equalTo(testId)
+            .get();
+
+        if (questionsSnapshot.exists) {
+          final questionsValue = questionsSnapshot.value;
+          if (questionsValue is Map<dynamic, dynamic> && questionsValue.isNotEmpty) {
+            return true; // Found at least one question
+          }
+        }
+      }
+      
+      return false;
+    } catch (e) {
+      print('Error checking if topic has questions: $e');
+      return false;
+    }
+  }
 }
 
