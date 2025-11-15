@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:afn_test/app/app_widgets/app_text_styles.dart';
+import 'package:afn_test/app/app_widgets/app_colors.dart';
 
 class CustomTextfield extends StatelessWidget {
   final String? hintText;
@@ -45,12 +46,11 @@ class CustomTextfield extends StatelessWidget {
         isDense: true,
         hintText: hintText,
         labelText: labelText,
-      
         filled: true,
-        fillColor: const Color(0xffEEF9C0), // Fill color yellow
+        fillColor: Colors.white, // Professional white fill color
         contentPadding: EdgeInsets.symmetric(
           horizontal: 20.w,
-          vertical: 16.h,
+          vertical: 14.h,
         ),
         prefixIcon: prefixIcon != null
             ? Padding(
@@ -65,24 +65,24 @@ class CustomTextfield extends StatelessWidget {
               )
             : null,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(50.r), // Full radius (completely rounded)
-          borderSide: const BorderSide(
-            color: Colors.white, // Border color white
-            width: 2.0,
+          borderRadius: BorderRadius.circular(50.r), // Fully rounded
+          borderSide: BorderSide(
+            color: AppColors.borderLight, // Subtle border
+            width: 1.0,
           ),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(50.r), // Full radius
-          borderSide: const BorderSide(
-            color: Colors.white, // Border color white
-            width: 2.0,
+          borderRadius: BorderRadius.circular(50.r), // Fully rounded
+          borderSide: BorderSide(
+            color: AppColors.textPrimary, // Subtle border
+            width: 1.0,
           ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(50.r), // Full radius
-          borderSide: const BorderSide(
-            color: Colors.white, // Border color white
-            width: 2.5,
+          borderRadius: BorderRadius.circular(50.r), // Fully rounded
+          borderSide: BorderSide(
+            color: AppColors.primaryTeal, // Focus color
+            width: 2.0,
           ),
         ),
         errorBorder: OutlineInputBorder(
@@ -100,10 +100,10 @@ class CustomTextfield extends StatelessWidget {
           ),
         ),
         hintStyle: AppTextStyles.bodyMedium.copyWith(
-          color: Colors.black54,
+          color: Colors.grey.shade600,
         ),
         labelStyle: AppTextStyles.bodyMedium.copyWith(
-          color: Colors.black87,
+          color: AppColors.primaryTeal,
         ),
       ),
     );

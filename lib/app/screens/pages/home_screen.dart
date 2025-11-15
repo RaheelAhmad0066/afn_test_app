@@ -1,8 +1,9 @@
 import 'package:afn_test/app/app_widgets/app_colors.dart';
 import 'package:afn_test/app/app_widgets/app_icons.dart';
+import 'package:afn_test/app/app_widgets/app_toast.dart';
 import 'package:afn_test/app/app_widgets/custom_textfield.dart';
-import 'package:afn_test/app/app_widgets/theme/app_themes.dart';
 import 'package:afn_test/app/app_widgets/app_text_styles.dart';
+import 'package:afn_test/app/app_widgets/spinkit_loadder.dart';
 import 'package:afn_test/app/controllers/quiz_controller.dart';
 import 'package:afn_test/app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +14,7 @@ import 'package:iconsax/iconsax.dart';
 class HomeScreen extends StatelessWidget {
   HomeScreen({super.key});
   
-  final QuizController controller = Get.put(QuizController());
+  QuizController get controller => Get.put(QuizController());
 
   // Map category names to icons
   String? getCategoryIcon(String categoryName) {
@@ -41,85 +42,105 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.accentYellowGreen,
+      backgroundColor: AppColors.backgroundLight,
       body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.all(16.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 8.h),
-              Text(
-                'Hello',
-                style: AppTextStyles.bodyMedium.copyWith(color: Colors.black),
-              ),
-              Text(
-                'Brooklyn Simmons',
-                style: AppTextStyles.label16.copyWith(color: Colors.black),
-              ),
-              SizedBox(height: 16.h),
-              Text(
-                'What Subject Do You Want To Improve today?',
-                style: AppTextStyles.headlineLarge.copyWith(
-                  color: AppColors.primaryTeal,
-                  fontWeight: FontWeight.w700,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.all(12.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 8.h),
+                Text(
+                  'Hello',
+                  style: AppTextStyles.bodyMedium.copyWith(color: Colors.black),
                 ),
-              ),
-              SizedBox(height: 16.h),
-              CustomTextfield(
-                prefixIcon: Icon(
-                  Iconsax.search_normal,
-                  color: AppColors.primaryTeal,
-                  size: 20.sp,
+                Text(
+                  'Brooklyn Simmons',
+                  style: AppTextStyles.label16.copyWith(color: Colors.black),
                 ),
-                controller: TextEditingController(),
-                hintText: 'Search for a subject',
-                keyboardType: TextInputType.text,
-              ),
-              SizedBox(height: 24.h),
-              // Grid View for Categories from Firebase
-              Expanded(
-                child: Obx(() {
+                SizedBox(height: 16.h),
+                Text(
+                  'What Subject Do You Want To Improve today?',
+                  style: AppTextStyles.headlineLarge.copyWith(
+                    color: AppColors.primaryTeal,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                SizedBox(height: 16.h),
+                CustomTextfield(
+                  prefixIcon: Icon(
+                    Iconsax.search_normal,
+                    color: AppColors.primaryTeal,
+                    size: 20.sp,
+                  ),
+                  controller: TextEditingController(),
+                  hintText: 'Search for a subject',
+                  keyboardType: TextInputType.text,
+                ),
+                SizedBox(height: 24.h),
+                // Grid View for Categories from Firebase
+                Obx(() {
                   if (controller.isLoadingCategories.value) {
-                    return Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.primaryTeal,
-                      ),
-                    );
-                  }
-
-                  if (controller.categories.isEmpty) {
-                    return Center(
-                      child: Text(
-                        'No categories found',
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          color: AppColors.primaryTeal,
+                    return SizedBox(
+                      height: 400.h,
+                      child: Center(
+                        child: SpinkitLoader(
                         ),
                       ),
                     );
                   }
 
-                  return GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2, // 2 columns
-                    crossAxisSpacing: 16.w,
-                    mainAxisSpacing: 16.h,
-                    childAspectRatio: 0.85, // Adjust card height
-                  ),
-                    itemCount: controller.categories.length,
-                  itemBuilder: (context, index) {
-                      final category = controller.categories[index];
-                    return _SubjectCard(
-                        name: category.name,
-                        iconPath: getCategoryIcon(category.name),
-                      index: index,
-                        categoryName: category.name, // Use category name instead of ID
+                  if (controller.categories.isEmpty) {
+                    return SizedBox(
+                      height: 400.h,
+                      child: Center(
+                        child: Text(
+                          'No categories found',
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: AppColors.primaryTeal,
+                          ),
+                        ),
+                      ),
                     );
-                  },
+                  }
+
+                  // Calculate grid height based on item count
+                  final itemCount = controller.categories.length;
+                  final rowCount = (itemCount / 2).ceil();
+                  final screenWidth = MediaQuery.of(context).size.width;
+                  final cardWidth = (screenWidth - 24.w - 16.w) / 2; // Screen width - padding - spacing
+                  final cardHeight = cardWidth / 0.85; // Based on aspect ratio
+                  final gridHeight = (rowCount * cardHeight) + ((rowCount - 1) * 16.h);
+
+                  return SizedBox(
+                    height: gridHeight,
+                    child: GridView.builder(
+                      physics: const NeverScrollableScrollPhysics(), // Disable grid scrolling, parent scrolls
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2, // 2 columns
+                        crossAxisSpacing: 16.w,
+                        mainAxisSpacing: 16.h,
+                        childAspectRatio: 0.85, // Adjust card height
+                      ),
+                      itemCount: controller.categories.length,
+                      itemBuilder: (context, index) {
+                        final category = controller.categories[index];
+                        return _SubjectCard(
+                          name: category.name,
+                          iconPath: getCategoryIcon(category.name),
+                          index: index,
+                          categoryName: category.name, // Use category name instead of ID
+                        );
+                      },
+                    ),
                   );
                 }),
-              ),
-            ],
+                
+                // Bottom padding for navigation bar
+                SizedBox(height: 100.h),
+              ],
+            ),
           ),
         ),
       ),
@@ -204,17 +225,17 @@ class _SubjectCardState extends State<_SubjectCard>
           if (quizController.topics.isNotEmpty) {
             Get.toNamed(AppRoutes.topicsList);
           } else {
-            Get.snackbar(
+            AppToast.showCustomToast(
               'No Topics',
               'No topics found for ${widget.categoryName}',
-              snackPosition: SnackPosition.BOTTOM,
+              type: ToastType.info,
             );
           }
         }).catchError((error) {
-          Get.snackbar(
+          AppToast.showCustomToast(
             'Error',
             'Failed to load topics: ${error.toString()}',
-            snackPosition: SnackPosition.BOTTOM,
+            type: ToastType.error,
           );
         });
       },
@@ -235,7 +256,7 @@ class _SubjectCardState extends State<_SubjectCard>
                 borderRadius: BorderRadius.circular(20.r),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(_isPressed ? 0.15 : 0.1),
+                    color: Colors.black.withValues(alpha: _isPressed ? 0.15 : 0.1),
                     blurRadius: _isPressed ? 15 : 10,
                     offset: Offset(0, _isPressed ? 6.h : 4.h),
                   ),
@@ -265,7 +286,7 @@ class _SubjectCardState extends State<_SubjectCard>
                             width: 60.w,
                             height: 60.h,
                             decoration: BoxDecoration(
-                              color: imageColor.withOpacity(0.2),
+                              color: imageColor.withValues(alpha: 0.2),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(

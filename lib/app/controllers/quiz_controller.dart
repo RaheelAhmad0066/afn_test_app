@@ -5,6 +5,8 @@ import '../models/category_model.dart';
 import '../models/topic_model.dart';
 import '../models/test_model.dart';
 import '../models/question_model.dart';
+import '../app_widgets/app_toast.dart';
+import 'leaderboard_controller.dart';
 
 class QuizController extends GetxController {
   DatabaseReference? _databaseRef;
@@ -111,19 +113,19 @@ class QuizController extends GetxController {
       } else {
         print('Categories node does not exist in Firebase');
         categories.clear();
-        Get.snackbar(
+        AppToast.showCustomToast(
           'No Categories',
           'No categories found. Please create categories in admin panel.',
-          snackPosition: SnackPosition.BOTTOM,
+          type: ToastType.info,
         );
       }
     } catch (e, stackTrace) {
       print('Error loading categories: $e');
       print('Stack trace: $stackTrace');
-      Get.snackbar(
+      AppToast.showCustomToast(
         'Error',
         'Failed to load categories: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
+        type: ToastType.error,
       );
       categories.clear();
     } finally {
@@ -135,7 +137,11 @@ class QuizController extends GetxController {
   Future<void> loadTopicsByCategory(String category) async {
     if (!isFirebaseAvailable) {
       print('Firebase not available for loading topics');
-      Get.snackbar('Error', 'Firebase is not available');
+      AppToast.showCustomToast(
+        'Error',
+        'Firebase is not available',
+        type: ToastType.error,
+      );
       return;
     }
     
@@ -180,10 +186,10 @@ class QuizController extends GetxController {
           topics.value = loadedTopics;
           
           if (loadedTopics.isEmpty) {
-            Get.snackbar(
+            AppToast.showCustomToast(
               'No Topics',
               'No topics found for this category',
-              snackPosition: SnackPosition.BOTTOM,
+              type: ToastType.info,
             );
           }
         } else {
@@ -193,19 +199,19 @@ class QuizController extends GetxController {
       } else {
         print('No topics found in Firebase for category: $category');
         topics.clear();
-        Get.snackbar(
+        AppToast.showCustomToast(
           'No Topics',
           'No topics found for this category. Please create topics in admin panel.',
-          snackPosition: SnackPosition.BOTTOM,
+          type: ToastType.info,
         );
       }
     } catch (e, stackTrace) {
       print('Error loading topics: $e');
       print('Stack trace: $stackTrace');
-      Get.snackbar(
+      AppToast.showCustomToast(
         'Error',
         'Failed to load topics: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
+        type: ToastType.error,
       );
       topics.clear();
     } finally {
@@ -264,19 +270,19 @@ class QuizController extends GetxController {
       tests.value = allTests;
       
       if (allTests.isEmpty) {
-        Get.snackbar(
+        AppToast.showCustomToast(
           'No Tests',
           'No tests available for this category. Please create tests in admin panel.',
-          snackPosition: SnackPosition.BOTTOM,
+          type: ToastType.info,
         );
       }
     } catch (e, stackTrace) {
       print('Error loading tests: $e');
       print('Stack trace: $stackTrace');
-      Get.snackbar(
+      AppToast.showCustomToast(
         'Error',
         'Failed to load tests: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
+        type: ToastType.error,
       );
     } finally {
       isLoadingTests.value = false;
@@ -427,6 +433,57 @@ class QuizController extends GetxController {
   // Get answered questions count
   int getAnsweredCount() {
     return answeredQuestions.length;
+  }
+
+  // Calculate quiz score and update leaderboard
+  Future<Map<String, dynamic>> submitQuizResults() async {
+    if (questions.isEmpty) {
+      return {
+        'correctAnswers': 0,
+        'totalQuestions': 0,
+        'totalPoints': 0,
+        'testPassed': false,
+      };
+    }
+
+    int correctAnswers = 0;
+    int totalQuestions = questions.length;
+
+    // Count correct answers
+    for (int i = 0; i < totalQuestions; i++) {
+      if (isAnswerCorrect(i)) {
+        correctAnswers++;
+      }
+    }
+
+    // Calculate score (points per correct answer)
+    int pointsPerQuestion = 10;
+    int totalPoints = correctAnswers * pointsPerQuestion;
+
+    // Check if test passed (at least 60% correct)
+    double passPercentage = 0.6;
+    bool testPassed = (correctAnswers / totalQuestions) >= passPercentage;
+
+    // Update leaderboard
+    try {
+      final leaderboardController = Get.isRegistered<LeaderboardController>()
+          ? Get.find<LeaderboardController>()
+          : Get.put(LeaderboardController());
+
+      await leaderboardController.updateUserScore(
+        points: totalPoints,
+        testPassed: testPassed,
+      );
+    } catch (e) {
+      print('Error updating leaderboard: $e');
+    }
+
+    return {
+      'correctAnswers': correctAnswers,
+      'totalQuestions': totalQuestions,
+      'totalPoints': totalPoints,
+      'testPassed': testPassed,
+    };
   }
 
   // Get test count for a topic

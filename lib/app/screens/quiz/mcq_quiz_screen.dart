@@ -1,6 +1,7 @@
 import 'package:afn_test/app/app_widgets/app_colors.dart';
 import 'package:afn_test/app/app_widgets/app_text_styles.dart';
 import 'package:afn_test/app/controllers/quiz_controller.dart';
+import 'package:afn_test/app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -18,53 +19,8 @@ class MCQQuizScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5), // Light background
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: Container(
-          margin: EdgeInsets.all(8.w),
-          decoration: BoxDecoration(
-            color: AppColors.primaryTeal,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 4,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Get.back(),
-            padding: EdgeInsets.zero,
-          ),
-        ),
-        title: Column(
-          children: [
-            Text(
-              controller.selectedCategory.value.isNotEmpty
-                  ? '${controller.selectedCategory.value} Quiz Question'
-                  : 'Quiz Question',
-              style: TextStyle(
-                fontSize: 18.sp,
-                color: AppColors.primaryTeal,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Text(
-              '${controller.getTotalQuestions()} Questions',
-              style: TextStyle(
-                fontSize: 12.sp,
-                color: Colors.grey.shade600,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ],
-        ),
-        centerTitle: true,
-      ),
-      body: Obx(() {
+      body: SafeArea(
+        child: Obx(() {
         final currentQuestion = controller.getCurrentQuestion();
         if (currentQuestion == null) {
           return Center(
@@ -95,13 +51,7 @@ class MCQQuizScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(20.r),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
-                            blurRadius: 20,
-                            offset: Offset(0, 4),
-                          ),
-                        ],
+                      
                       ),
                       padding: EdgeInsets.all(20.w),
                       child: Column(
@@ -110,10 +60,9 @@ class MCQQuizScreen extends StatelessWidget {
                           // Question Number
                           Text(
                             'Question ${questionIndex + 1}',
-                            style: TextStyle(
-                              fontSize: 14.sp,
+                            style: AppTextStyles.bodyMedium.copyWith(
                               color: AppColors.primaryTeal,
-                              fontWeight: FontWeight.w400,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                           SizedBox(height: 12.h),
@@ -211,10 +160,10 @@ class MCQQuizScreen extends StatelessWidget {
                                 child: AnimatedContainer(
                                   duration: Duration(milliseconds: 400),
                                   curve: Curves.easeInOut,
-                                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+                                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 13.h),
                                   decoration: BoxDecoration(
                                     color: optionColor,
-                                    borderRadius: BorderRadius.circular(12.r),
+                                    borderRadius: BorderRadius.circular(32.r),
                                     border: Border.all(
                                       color: borderColor,
                                       width: isAnswered && (isCorrectOption || isSelected) ? 2 : 1,
@@ -232,24 +181,14 @@ class MCQQuizScreen extends StatelessWidget {
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      if (showCheckIcon)
-                                        AnimatedOpacity(
-                                          opacity: showCheckIcon ? 1.0 : 0.0,
-                                          duration: Duration(milliseconds: 300),
-                                          child: Icon(
-                                            Icons.check_circle,
-                                            color: AppColors.primaryTeal,
-                                            size: 20.sp,
-                                          ),
-                                        ),
+                                      
                                       if (showCheckIcon) SizedBox(width: 8.w),
                                       Flexible(
                                         child: Text(
                                           option,
-                                          style: TextStyle(
-                                            fontSize: 16.sp,
+                                          style: AppTextStyles.bodyMedium.copyWith(
                                             color: textColor,
-                                            fontWeight: FontWeight.w500,
+                                            fontWeight: FontWeight.w600,
                                           ),
                                           textAlign: TextAlign.center,
                                         ),
@@ -266,182 +205,155 @@ class MCQQuizScreen extends StatelessWidget {
                     SizedBox(height: 16.h),
                     // Explanation Section with Light Blue Background
                     if (isAnswered && currentQuestion.explanation != null)
-                      AnimatedContainer(
-                        duration: Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
-                          borderRadius: BorderRadius.circular(16.r),
-                        ),
-                        padding: EdgeInsets.all(16.w),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Basic Explanation:',
-                              style: TextStyle(
-                                fontSize: 16.sp,
-                                color: AppColors.primaryTeal,
-                                fontWeight: FontWeight.bold,
-                              ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Basic Explanation:',
+                            style: AppTextStyles.label16.copyWith(
+                              color: Colors.black,
                             ),
-                            SizedBox(height: 12.h),
-                            _buildExplanation(currentQuestion.explanation!),
-                            SizedBox(height: 16.h),
-                            // Answer Validation Message
-                            AnimatedOpacity(
-                              opacity: isAnswered ? 1.0 : 0.0,
-                              duration: Duration(milliseconds: 300),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    isCorrect ? Icons.check_circle : Icons.cancel,
-                                    color: isCorrect ? Colors.green : Colors.red,
-                                    size: 20.sp,
+                          ),
+                          SizedBox(height: 12.h),
+                          _buildExplanation(currentQuestion.explanation!),
+                          SizedBox(height: 16.h),
+                          // Answer Validation Message
+                          AnimatedOpacity(
+                            opacity: isAnswered ? 1.0 : 0.0,
+                            duration: Duration(milliseconds: 300),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  isCorrect ? Icons.check_circle : Icons.cancel,
+                                  color: isCorrect ? AppColors.primaryTeal : Colors.red,
+                                  size: 20.sp,
+                                ),
+                                SizedBox(width: 8.w),
+                                Text(
+                                  isCorrect
+                                      ? 'Your answer is correct.'
+                                      : 'Your answer is incorrect.',
+                                  style: AppTextStyles.bodyMedium.copyWith(
+                                    color: isCorrect
+                                        ? AppColors.primaryTeal
+                                        : Colors.red,
+                                    fontWeight: FontWeight.w600,
                                   ),
-                                  SizedBox(width: 8.w),
-                                  Text(
-                                    isCorrect
-                                        ? 'Your answer is correct.'
-                                        : 'Your answer is incorrect.',
-                                    style: TextStyle(
-                                      fontSize: 14.sp,
-                                      color: isCorrect
-                                          ? AppColors.primaryTeal
-                                          : Colors.red.shade700,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                   ],
                 ),
               ),
             ),
             // Navigation Buttons - Integrated in body with smooth animation
-            AnimatedContainer(
-              duration: Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: Offset(0, -2),
+            SafeArea(
+              top: false,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Skip Button (Outline) - More rounded
+                  AnimatedContainer(
+                    duration: Duration(milliseconds: 200),
+                    width: 160.w,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          controller.nextQuestion();
+                        },
+                        borderRadius: BorderRadius.circular(30.r),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(vertical: 13.h),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(30.r),
+                            border: Border.all(
+                              color: AppColors.primaryTeal,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              'Skip',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                color: AppColors.primaryTeal,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  // Save & Next Button (Filled) - More rounded
+                  AnimatedContainer(
+                    duration: Duration(milliseconds: 200),
+                    width: 160.w,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: isAnswered
+                            ? () async {
+                                if (questionIndex < controller.getTotalQuestions() - 1) {
+                                  controller.nextQuestion();
+                                } else {
+                                  // Submit quiz results and show score screen
+                                  final results = await controller.submitQuizResults();
+                                  Get.offNamed(
+                                    AppRoutes.score,
+                                    arguments: results,
+                                  );
+                                }
+                              }
+                            : null,
+                        borderRadius: BorderRadius.circular(30.r),
+                        child: AnimatedContainer(
+                          duration: Duration(milliseconds: 200),
+                          padding: EdgeInsets.symmetric(vertical: 14.h),
+                          decoration: BoxDecoration(
+                            color: isAnswered
+                                ? AppColors.primaryTeal
+                                : Colors.grey.shade300,
+                            borderRadius: BorderRadius.circular(30.r),
+                            boxShadow: isAnswered
+                                ? [
+                                    BoxShadow(
+                                      color: AppColors.primaryTeal.withOpacity(0.3),
+                                      blurRadius: 8,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: Center(
+                            child: Text(
+                              questionIndex < controller.getTotalQuestions() - 1
+                                  ? 'Save & Next'
+                                  : 'Finish',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                color: isAnswered ? Colors.white : Colors.grey.shade600,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
-              ),
-              child: SafeArea(
-                top: false,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Skip Button (Outline) - More rounded
-                    AnimatedContainer(
-                      duration: Duration(milliseconds: 200),
-                      width: 120.w,
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () {
-                            controller.nextQuestion();
-                          },
-                          borderRadius: BorderRadius.circular(30.r),
-                          child: Container(
-                            padding: EdgeInsets.symmetric(vertical: 14.h),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(30.r),
-                              border: Border.all(
-                                color: AppColors.primaryTeal,
-                                width: 1.5,
-                              ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                'Skip',
-                                style: TextStyle(
-                                  fontSize: 16.sp,
-                                  color: AppColors.primaryTeal,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 12.w),
-                    // Save & Next Button (Filled) - More rounded
-                    AnimatedContainer(
-                      duration: Duration(milliseconds: 200),
-                      width: 160.w,
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: isAnswered
-                              ? () {
-                                  if (questionIndex < controller.getTotalQuestions() - 1) {
-                                    controller.nextQuestion();
-                                  } else {
-                                    Get.back();
-                                    Get.snackbar(
-                                      'Quiz Completed',
-                                      'You have completed all questions!',
-                                      backgroundColor: AppColors.primaryTeal,
-                                      colorText: Colors.white,
-                                    );
-                                  }
-                                }
-                              : null,
-                          borderRadius: BorderRadius.circular(30.r),
-                          child: AnimatedContainer(
-                            duration: Duration(milliseconds: 200),
-                            padding: EdgeInsets.symmetric(vertical: 14.h),
-                            decoration: BoxDecoration(
-                              color: isAnswered
-                                  ? AppColors.primaryTeal
-                                  : Colors.grey.shade300,
-                              borderRadius: BorderRadius.circular(30.r),
-                              boxShadow: isAnswered
-                                  ? [
-                                      BoxShadow(
-                                        color: AppColors.primaryTeal.withOpacity(0.3),
-                                        blurRadius: 8,
-                                        offset: Offset(0, 2),
-                                      ),
-                                    ]
-                                  : null,
-                            ),
-                            child: Center(
-                              child: Text(
-                                questionIndex < controller.getTotalQuestions() - 1
-                                    ? 'Save & Next'
-                                    : 'Finish',
-                                style: TextStyle(
-                                  fontSize: 16.sp,
-                                  color: isAnswered ? Colors.white : Colors.grey.shade600,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
               ),
             ),
           ],
         );
-      }),
+        }),
+      ),
     );
   }
 
